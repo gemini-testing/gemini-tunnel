@@ -34,9 +34,13 @@
   "scripts": {
     "test": "npm run lint && npm run unit-test",
     "lint": "jshint . && jscs .",
-    "unit-test": "istanbul test _mocha --recursive test"
+    "unit-test": "istanbul test _mocha --recursive test/lib"
   },
-  "dependencies": {},
+  "dependencies": {
+    "inherit": "^2.2.2",
+    "lodash": "^3.10.1",
+    "q": "^1.4.1"
+  },
   "devDependencies": {
     "chai": "^3.3.0",
     "chai-as-promised": "^5.1.0",
@@ -45,6 +49,7 @@
     "jscs": "^2.1.1",
     "jshint": "^2.8.0",
     "mocha": "^2.3.3",
+    "qemitter": "^1.0.0",
     "sinon": "^1.16.1",
     "sinon-chai": "^2.8.0"
   }

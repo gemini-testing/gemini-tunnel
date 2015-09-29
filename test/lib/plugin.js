@@ -1,0 +1,142 @@
+var plugin = require('../../lib/plugin'),
+    Tunnel = require('../../lib/Tunnel'),
+    q = require('q'),
+    qEmitter = require('qemitter'),
+    inherit = require('inherit'),
+    _ = require('lodash'),
+    events = require('events');
+
+describe('plugin', function () {
+    var sandbox = sinon.sandbox.create(),
+        gemini;
+
+    beforeEach(function () {
+        gemini = new events.EventEmitter();
+    });
+
+    afterEach(function () {
+        sandbox.restore();
+    });
+
+    describe('options', function () {
+        it('should do nothing if plugin is not enabled', function () {
+            var opts = { enabled: false };
+
+            sandbox.spy(gemini, 'on');
+            plugin(gemini, opts);
+
+            expect(gemini.on).to.be.not.called;
+        });
+
+        it('should enable plugin if opts.enabled is not set', function () {
+            var opts = buildGeminiOpts();
+
+            sandbox.spy(gemini, 'on');
+            plugin(gemini, opts);
+
+            expect(gemini.on).to.be.called;
+        });
+
+        it('should throw if no remote host passed in options', function () {
+            var opts = {
+                ports: 'ports',
+                localport: 'localport'
+            };
+
+            expect(function () { plugin(gemini, opts); })
+                .to.throw('Missing required option: host');
+        });
+
+        it('should throw if no ports range passed', function () {
+            var opts = {
+                host: 'host',
+                localport: 'localport'
+            };
+
+            expect(function () { plugin(gemini, opts); })
+                .to.throw('Missing required option: ports');
+        });
+
+        it('should throw if no local port passed', function () {
+            var opts = {
+                host: 'host',
+                ports: 'ports'
+            };
+
+            expect(function () { plugin(gemini, opts); })
+                .to.throw('Missing required option: localport');
+        });
+    });
+
+    describe('gemini events', function () {
+        beforeEach(function () {
+            sandbox.spy(gemini, 'on');
+        });
+
+        it('should subscribe for startRunner event', function () {
+            plugin(gemini, buildGeminiOpts());
+
+            expect(gemini.on).to.be.calledWith('startRunner');
+        });
+
+        it('should subscribe for endRunner event', function () {
+            plugin(gemini, buildGeminiOpts());
+
+            expect(gemini.on).to.be.calledWith('endRunner');
+        });
+
+        it('should try open tunnel with retries set in opts on startRunner event', function () {
+            var opts = buildGeminiOpts(),
+                openWithRetries = sandbox.stub(Tunnel, 'openWithRetries');
+
+            opts.retries = 5;
+
+            openWithRetries.returns(q.resolve());
+            plugin(gemini, opts);
+            gemini.emit('startRunner');
+
+            expect(openWithRetries).to.be.calledWith(opts, 5);
+        });
+
+        it('should replace urls from config with urls to remote host where tunnel opened', function () {
+            var opts = buildGeminiOpts({
+                    host: 'some_host',
+                    ports: { min: 1, max: 1 }
+                }),
+                gemini = mimicGeminiConfig('ya_browser', sandbox);
+
+            sandbox.stub(Tunnel.prototype, 'open');
+            Tunnel.prototype.open.returns(q());
+
+            plugin(gemini, opts);
+            return gemini.emitAndWait('startRunner').then(function () {
+                expect(gemini.config.forBrowser('ya_browser').rootUrl).to.be.equal('some_host:1');
+            });
+        });
+    });
+});
+
+function buildGeminiOpts (opts) {
+    opts = opts || {};
+
+    return _.defaults(opts, {
+        host: 'host',
+        ports: 'ports',
+        localport: 'localport'
+    });
+}
+
+function mimicGeminiConfig (browserId, sandbox) {
+    var Constructor = inherit(qEmitter, {
+            config: {
+                getBrowserIds: sandbox.stub(),
+                forBrowser: sandbox.stub()
+            }
+        }),
+        emitter = new Constructor();
+
+    emitter.config.getBrowserIds.returns([browserId]);
+    emitter.config.forBrowser.withArgs(browserId).returns({});
+
+    return emitter;
+}
