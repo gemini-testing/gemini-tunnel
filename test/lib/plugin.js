@@ -117,7 +117,7 @@ describe('plugin', function () {
             });
         });
 
-        it('should prepemnd protocol from old root url to new root url', function  () {
+        it('should should save protocol in root url', function  () {
             var opts = buildGeminiOpts({
                     host: 'some_host',
                     ports: { min: 1, max: 1 }
