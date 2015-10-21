@@ -103,7 +103,10 @@ describe('plugin', function () {
                     host: 'some_host',
                     ports: { min: 1, max: 1 }
                 }),
-                gemini = mimicGeminiConfig('ya_browser', sandbox);
+                gemini = mimicGeminiConfig({
+                    browserId: 'ya_browser',
+                    oldRoot: 'random-host.com'
+                }, sandbox);
 
             sandbox.stub(Tunnel.prototype, 'open');
             Tunnel.prototype.open.returns(q());
@@ -111,6 +114,63 @@ describe('plugin', function () {
             plugin(gemini, opts);
             return gemini.emitAndWait('startRunner').then(function () {
                 expect(gemini.config.forBrowser('ya_browser').rootUrl).to.be.equal('some_host:1');
+            });
+        });
+
+        it('should should save protocol in root url', function  () {
+            var opts = buildGeminiOpts({
+                    host: 'some_host',
+                    ports: { min: 1, max: 1 }
+                }),
+                gemini = mimicGeminiConfig({
+                    browserId: 'ya_browser',
+                    oldRoot: 'http://random-host.com'
+                }, sandbox);
+
+            sandbox.stub(Tunnel.prototype, 'open');
+            Tunnel.prototype.open.returns(q());
+
+            plugin(gemini, opts);
+            return gemini.emitAndWait('startRunner').then(function () {
+                expect(gemini.config.forBrowser('ya_browser').rootUrl).to.contain('http:');
+            });
+        });
+
+        it('should add slashes after protocol if protocol requires slashes', function () {
+            var opts = buildGeminiOpts({
+                    host: 'some_host',
+                    ports: { min: 1, max: 1 }
+                }),
+                gemini = mimicGeminiConfig({
+                    browserId: 'ya_browser',
+                    oldRoot: 'http://random-host.com'
+                }, sandbox);
+
+            sandbox.stub(Tunnel.prototype, 'open');
+            Tunnel.prototype.open.returns(q());
+
+            plugin(gemini, opts);
+            return gemini.emitAndWait('startRunner').then(function () {
+                expect(gemini.config.forBrowser('ya_browser').rootUrl).to.contain('http://');
+            });
+        });
+
+        it('should not add slashes after protocol if protocol requires slashes', function () {
+            var opts = buildGeminiOpts({
+                    host: 'some_host',
+                    ports: { min: 1, max: 1 }
+                }),
+                gemini = mimicGeminiConfig({
+                    browserId: 'ya_browser',
+                    oldRoot: 'ssh:random-host.com'
+                }, sandbox);
+
+            sandbox.stub(Tunnel.prototype, 'open');
+            Tunnel.prototype.open.returns(q());
+
+            plugin(gemini, opts);
+            return gemini.emitAndWait('startRunner').then(function () {
+                expect(gemini.config.forBrowser('ya_browser').rootUrl).to.not.contain('ssh://');
             });
         });
     });
@@ -126,7 +186,7 @@ function buildGeminiOpts (opts) {
     });
 }
 
-function mimicGeminiConfig (browserId, sandbox) {
+function mimicGeminiConfig (opts, sandbox) {
     var Constructor = inherit(qEmitter, {
             config: {
                 getBrowserIds: sandbox.stub(),
@@ -135,8 +195,8 @@ function mimicGeminiConfig (browserId, sandbox) {
         }),
         emitter = new Constructor();
 
-    emitter.config.getBrowserIds.returns([browserId]);
-    emitter.config.forBrowser.withArgs(browserId).returns({});
+    emitter.config.getBrowserIds.returns([opts.browserId]);
+    emitter.config.forBrowser.withArgs(opts.browserId).returns({ rootUrl: opts.oldRoot });
 
     return emitter;
 }
