@@ -132,7 +132,45 @@ describe('plugin', function () {
 
             plugin(gemini, opts);
             return gemini.emitAndWait('startRunner').then(function () {
+                expect(gemini.config.forBrowser('ya_browser').rootUrl).to.contain('http:');
+            });
+        });
+
+        it('should add slashes after protocol if protocol requires slashes', function () {
+            var opts = buildGeminiOpts({
+                    host: 'some_host',
+                    ports: { min: 1, max: 1 }
+                }),
+                gemini = mimicGeminiConfig({
+                    browserId: 'ya_browser',
+                    oldRoot: 'http://random-host.com'
+                }, sandbox);
+
+            sandbox.stub(Tunnel.prototype, 'open');
+            Tunnel.prototype.open.returns(q());
+
+            plugin(gemini, opts);
+            return gemini.emitAndWait('startRunner').then(function () {
                 expect(gemini.config.forBrowser('ya_browser').rootUrl).to.contain('http://');
+            });
+        });
+
+        it('should not add slashes after protocol if protocol requires slashes', function () {
+            var opts = buildGeminiOpts({
+                    host: 'some_host',
+                    ports: { min: 1, max: 1 }
+                }),
+                gemini = mimicGeminiConfig({
+                    browserId: 'ya_browser',
+                    oldRoot: 'ssh:random-host.com'
+                }, sandbox);
+
+            sandbox.stub(Tunnel.prototype, 'open');
+            Tunnel.prototype.open.returns(q());
+
+            plugin(gemini, opts);
+            return gemini.emitAndWait('startRunner').then(function () {
+                expect(gemini.config.forBrowser('ya_browser').rootUrl).to.not.contain('ssh://');
             });
         });
     });
