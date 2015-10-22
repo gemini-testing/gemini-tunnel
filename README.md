@@ -34,3 +34,5 @@ system:
       retries: 3
       protocol: https
 ```
+
+If passed config is not an object, plugin will do nothing.
