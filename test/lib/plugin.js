@@ -19,6 +19,15 @@ describe('plugin', function () {
     });
 
     describe('options', function () {
+        it('should do nothing if opts is not an object', function () {
+            var opts = 'I`m an object!';
+
+            sandbox.spy(gemini, 'on');
+            plugin(gemini, opts);
+
+            expect(gemini.on).to.be.not.called;
+        });
+
         it('should do nothing if plugin is not enabled', function () {
             var opts = { enabled: false };
 
