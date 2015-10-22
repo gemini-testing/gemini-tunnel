@@ -17,6 +17,7 @@ Plugin for setting up ssh tunnel while running tests with Gemini.
 - __localport__ Available port on local machine.
 - __enabled__ (optional) Determines is plugin enabled. If option set as `false`, plugin will do nothing, otherwise plugin will work.
 - __retries__ (optional) Number of attempts to establish tunnel. Defaults to 5 times.
+- __protocol__ (optional) Protocol which will be used in resulting root url. Defaults to `http`
 
 Set the configuration to your `.gemini.yml`
 
@@ -31,4 +32,5 @@ system:
       localport: 8080
       enabled: true
       retries: 3
+      protocol: https
 ```
