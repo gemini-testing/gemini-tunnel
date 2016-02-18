@@ -21,10 +21,6 @@
   "overrides": {
     "test/**": {
       "mocha": true
-    },
-    "lib/browser/client-scripts/*": {
-      "node": false,
-      "browserify": true
     }
   }
 }

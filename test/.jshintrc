@@ -6,7 +6,6 @@
   "node": true,
   "expr": true,
   "globals": {
-    /* MOCHA */
     "describe": false,
     "it": false,
     "before"     : false,

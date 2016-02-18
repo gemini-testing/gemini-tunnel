@@ -1,5 +1,5 @@
-var plugin = require('../../lib/plugin'),
-    Tunnel = require('../../lib/Tunnel'),
+var plugin = require('../'),
+    Tunnel = require('ssh-tun'),
     q = require('q'),
     qEmitter = require('qemitter'),
     inherit = require('inherit'),

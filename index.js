@@ -2,7 +2,7 @@
 
 var _ = require('lodash'),
     util = require('util'),
-    Tunnel = require('./Tunnel');
+    Tunnel = require('ssh-tun');
 
 var REQUIRED_OPTS = {
     HOST: 'host',

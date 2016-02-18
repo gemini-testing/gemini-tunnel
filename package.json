@@ -9,7 +9,6 @@
     "test",
     "tunnel"
   ],
-  "main": "lib/plugin.js",
   "author": "Ilia Isupov <ilia.isupov@gmail.com>",
   "license": "MIT",
   "repository": {
@@ -29,17 +28,18 @@
     "Ilia Isupov <ilia.isupov@gmail.com>"
   ],
   "engines": {
-    "node": ">= 0.12.0"
+    "node": ">= 0.10.0"
   },
   "scripts": {
     "test": "npm run lint && npm run unit-test",
     "lint": "jshint . && jscs .",
-    "unit-test": "istanbul test _mocha --recursive test/lib"
+    "unit-test": "istanbul test _mocha --recursive test"
   },
   "dependencies": {
     "inherit": "^2.2.2",
     "lodash": "^3.10.1",
-    "q": "^1.4.1"
+    "q": "^1.4.1",
+    "ssh-tun": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^3.3.0",
