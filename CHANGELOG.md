@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.1.0 - 2016-02-18
+
+* Tunnel module extracted to separate package
+
 # 1.0.3 - 2015-10-22
 
 * Added opts validation step: if opts is not an object, plugin will do nothing
