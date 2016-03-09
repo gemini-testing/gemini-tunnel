@@ -136,6 +136,21 @@ describe('plugin', function () {
             });
         });
 
+        it('should try to close tunnel on endRunner', function () {
+            var opts = buildGeminiOpts(),
+                gemini = mimicGeminiConfig(opts, sandbox);
+
+            sandbox.stub(Tunnel.prototype, 'open').returns(q());
+            sandbox.spy(Tunnel.prototype, 'close');
+
+            plugin(gemini, opts);
+            return gemini.emitAndWait('startRunner').then(function () {
+                return gemini.emitAndWait('endRunner').then(function () {
+                    assert.called(Tunnel.prototype.close);
+                });
+            });
+        });
+
         it('should replace urls from config with urls to remote host where tunnel opened', function () {
             var opts = buildGeminiOpts({
                     host: 'some_host',
