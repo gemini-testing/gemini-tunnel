@@ -2,7 +2,8 @@
 
 var _ = require('lodash'),
     util = require('util'),
-    Tunnel = require('ssh-tun');
+    Tunnel = require('ssh-tun'),
+    q = require('q');
 
 var REQUIRED_OPTS = {
     HOST: 'host',
@@ -34,15 +35,25 @@ function openTunnel(gemini, opts) {
     var tunnel;
 
     gemini.on('startRunner', function () {
-        return Tunnel.openWithRetries(opts, opts.retries).then(function (createdTunnel) {
-            tunnel = createdTunnel;
-            gemini.config.getBrowserIds().forEach(function (id) {
-                var protocol = opts.protocol || DEFAULT_PROTOCOL,
-                    proxyUrl = createdTunnel.proxyUrl;
+        return q
+            .invoke(function () {
+                return _.isFunction(opts.localport) ? opts.localport() : opts.localport;
+            })
+            .then(function (localport) {
+                return Tunnel.openWithRetries(
+                    _.extend(opts, { localport: localport }),
+                    opts.retries
+                );
+            })
+            .then(function (createdTunnel) {
+                tunnel = createdTunnel;
+                gemini.config.getBrowserIds().forEach(function (id) {
+                    var protocol = opts.protocol || DEFAULT_PROTOCOL,
+                        proxyUrl = createdTunnel.proxyUrl;
 
-                gemini.config.forBrowser(id).rootUrl = util.format('%s://%s', protocol, proxyUrl);
+                    gemini.config.forBrowser(id).rootUrl = util.format('%s://%s', protocol, proxyUrl);
+                });
             });
-        });
     });
 
     gemini.on('endRunner', function () {

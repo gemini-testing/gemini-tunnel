@@ -4,7 +4,8 @@ var plugin = require('../'),
     qEmitter = require('qemitter'),
     inherit = require('inherit'),
     _ = require('lodash'),
-    events = require('events');
+    events = require('events'),
+    Tunnel = require('ssh-tun');
 
 describe('plugin', function () {
     var sandbox = sinon.sandbox.create(),
@@ -78,6 +79,32 @@ describe('plugin', function () {
                 return plugin(gemini, opts);
             }, 'Missing required option: localport');
         });
+
+        describe('"localport" is a function', function () {
+            var opts;
+
+            beforeEach(function () {
+                opts = buildGeminiOpts({ localport: sandbox.stub() });
+                gemini = mimicGeminiConfig(opts, sandbox);
+                sandbox.stub(Tunnel, 'openWithRetries').returns(q.resolve(new Tunnel(opts)));
+            });
+
+            it('should detect localport if promise is resolved', function () {
+                opts.localport.returns(q.resolve(4444));
+
+                plugin(gemini, opts);
+                return gemini.emitAndWait('startRunner').then(function () {
+                    assert.calledWithMatch(Tunnel.openWithRetries, { localport: 4444 });
+                });
+            });
+
+            it('should throw if "localport" promise is rejected', function () {
+                opts.localport.returns(q.reject(new Error('Could not find free port')));
+
+                plugin(gemini, opts);
+                return assert.isRejected(gemini.emitAndWait('startRunner'), 'Could not find free port');
+            });
+        });
     });
 
     describe('gemini events', function () {
@@ -98,16 +125,15 @@ describe('plugin', function () {
         });
 
         it('should try open tunnel with retries set in opts on startRunner event', function () {
-            var opts = buildGeminiOpts(),
-                openWithRetries = sandbox.stub(Tunnel, 'openWithRetries');
+            var opts = buildGeminiOpts({ retries: 5 }),
+                gemini = mimicGeminiConfig(opts, sandbox);
 
-            opts.retries = 5;
+            sandbox.stub(Tunnel, 'openWithRetries').returns(q.resolve(new Tunnel(opts)));
 
-            openWithRetries.returns(q.resolve());
             plugin(gemini, opts);
-            gemini.emit('startRunner');
-
-            assert.calledWith(openWithRetries, opts, 5);
+            return gemini.emitAndWait('startRunner').then(function () {
+                assert.calledWith(Tunnel.openWithRetries, opts, 5);
+            });
         });
 
         it('should replace urls from config with urls to remote host where tunnel opened', function () {
