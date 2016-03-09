@@ -155,7 +155,7 @@ describe('plugin', function () {
             });
         });
 
-        it('should should use prtocol from opts in resulting root url', function  () {
+        it('should use protocol from opts in resulting root url', function () {
             var opts = buildGeminiOpts({
                     host: 'some_host',
                     ports: { min: 1, max: 1 },
@@ -175,7 +175,7 @@ describe('plugin', function () {
             });
         });
 
-        it('should should use prtocol `http` by default in resulting root url', function  () {
+        it('should use protocol `http` by default in resulting root url', function () {
             var opts = buildGeminiOpts({
                     host: 'some_host',
                     ports: { min: 1, max: 1 }
