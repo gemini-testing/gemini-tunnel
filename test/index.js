@@ -25,7 +25,7 @@ describe('plugin', function () {
             sandbox.spy(gemini, 'on');
             plugin(gemini, opts);
 
-            expect(gemini.on).to.be.not.called;
+            assert.notCalled(gemini.on);
         });
 
         it('should do nothing if plugin is not enabled', function () {
@@ -34,7 +34,7 @@ describe('plugin', function () {
             sandbox.spy(gemini, 'on');
             plugin(gemini, opts);
 
-            expect(gemini.on).to.be.not.called;
+            assert.notCalled(gemini.on);
         });
 
         it('should enable plugin if opts.enabled is not set', function () {
@@ -43,7 +43,7 @@ describe('plugin', function () {
             sandbox.spy(gemini, 'on');
             plugin(gemini, opts);
 
-            expect(gemini.on).to.be.called;
+            assert.called(gemini.on);
         });
 
         it('should throw if no remote host passed in options', function () {
@@ -52,8 +52,9 @@ describe('plugin', function () {
                 localport: 'localport'
             };
 
-            expect(function () { plugin(gemini, opts); })
-                .to.throw('Missing required option: host');
+            assert.throws(function () {
+                return plugin(gemini, opts);
+            }, 'Missing required option: host');
         });
 
         it('should throw if no ports range passed', function () {
@@ -62,8 +63,9 @@ describe('plugin', function () {
                 localport: 'localport'
             };
 
-            expect(function () { plugin(gemini, opts); })
-                .to.throw('Missing required option: ports');
+            assert.throws(function () {
+                return plugin(gemini, opts);
+            }, 'Missing required option: ports');
         });
 
         it('should throw if no local port passed', function () {
@@ -72,8 +74,9 @@ describe('plugin', function () {
                 ports: 'ports'
             };
 
-            expect(function () { plugin(gemini, opts); })
-                .to.throw('Missing required option: localport');
+            assert.throws(function () {
+                return plugin(gemini, opts);
+            }, 'Missing required option: localport');
         });
     });
 
@@ -85,13 +88,13 @@ describe('plugin', function () {
         it('should subscribe for startRunner event', function () {
             plugin(gemini, buildGeminiOpts());
 
-            expect(gemini.on).to.be.calledWith('startRunner');
+            assert.calledWith(gemini.on, 'startRunner');
         });
 
         it('should subscribe for endRunner event', function () {
             plugin(gemini, buildGeminiOpts());
 
-            expect(gemini.on).to.be.calledWith('endRunner');
+            assert.calledWith(gemini.on, 'endRunner');
         });
 
         it('should try open tunnel with retries set in opts on startRunner event', function () {
@@ -104,7 +107,7 @@ describe('plugin', function () {
             plugin(gemini, opts);
             gemini.emit('startRunner');
 
-            expect(openWithRetries).to.be.calledWith(opts, 5);
+            assert.calledWith(openWithRetries, opts, 5);
         });
 
         it('should replace urls from config with urls to remote host where tunnel opened', function () {
@@ -122,7 +125,7 @@ describe('plugin', function () {
 
             plugin(gemini, opts);
             return gemini.emitAndWait('startRunner').then(function () {
-                expect(gemini.config.forBrowser('ya_browser').rootUrl).to.contain('some_host:1');
+                assert.include(gemini.config.forBrowser('ya_browser').rootUrl, 'some_host:1');
             });
         });
 
@@ -142,7 +145,7 @@ describe('plugin', function () {
 
             plugin(gemini, opts);
             return gemini.emitAndWait('startRunner').then(function () {
-                expect(gemini.config.forBrowser('ya_browser').rootUrl).to.contain('https://');
+                assert.include(gemini.config.forBrowser('ya_browser').rootUrl, 'https://');
             });
         });
 
@@ -161,7 +164,7 @@ describe('plugin', function () {
 
             plugin(gemini, opts);
             return gemini.emitAndWait('startRunner').then(function () {
-                expect(gemini.config.forBrowser('ya_browser').rootUrl).to.contain('http://');
+                assert.include(gemini.config.forBrowser('ya_browser').rootUrl, 'http://');
             });
         });
     });
