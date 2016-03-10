@@ -44,6 +44,7 @@
   "requireSpaceAfterLineComment": true,
   "disallowNewlineBeforeBlockStatements": true,
   "excludeFiles": [
+    "coverage",
     "node_modules"
   ]
 }

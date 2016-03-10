@@ -1,4 +1,3 @@
---ui bdd
 --reporter spec
 --no-timeouts
 --require ./test/setup.js

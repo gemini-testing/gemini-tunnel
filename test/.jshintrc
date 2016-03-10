@@ -13,7 +13,6 @@
     "after"      : false,
     "afterEach"  : false,
     "sinon"      : false,
-    "expect"     : false,
-    "chai"       : false
+    "assert"     : false
   }
 }
