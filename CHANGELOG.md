@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.2.0 - 2016-03-10
+
+* Added ability to pass Function as a localport
+
 # 1.1.0 - 2016-02-18
 
 * Tunnel module extracted to separate package
