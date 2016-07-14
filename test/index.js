@@ -85,7 +85,10 @@ describe('plugin', function () {
 
             beforeEach(function () {
                 opts = buildGeminiOpts({ localport: sandbox.stub() });
-                gemini = mimicGeminiConfig(opts, sandbox);
+                gemini = mimicGeminiConfig(_.extend(opts, {
+                    browserId: 'ya_browser',
+                    rootUrl: 'random-host.com'
+                }), sandbox);
                 sandbox.stub(Tunnel, 'openWithRetries').returns(q.resolve(new Tunnel(opts)));
             });
 
@@ -126,7 +129,10 @@ describe('plugin', function () {
 
         it('should try open tunnel with retries set in opts on startRunner event', function () {
             var opts = buildGeminiOpts({ retries: 5 }),
-                gemini = mimicGeminiConfig(opts, sandbox);
+                gemini = mimicGeminiConfig(_.extend(opts, {
+                    browserId: 'ya_browser',
+                    rootUrl: 'random-host.com'
+                }), sandbox);
 
             sandbox.stub(Tunnel, 'openWithRetries').returns(q.resolve(new Tunnel(opts)));
 
@@ -138,7 +144,10 @@ describe('plugin', function () {
 
         it('should try to close tunnel on endRunner', function () {
             var opts = buildGeminiOpts(),
-                gemini = mimicGeminiConfig(opts, sandbox);
+                gemini = mimicGeminiConfig(_.extend(opts, {
+                    browserId: 'ya_browser',
+                    rootUrl: 'random-host.com'
+                }), sandbox);
 
             sandbox.stub(Tunnel.prototype, 'open').returns(q());
             sandbox.spy(Tunnel.prototype, 'close');
@@ -158,7 +167,7 @@ describe('plugin', function () {
                 }),
                 gemini = mimicGeminiConfig({
                     browserId: 'ya_browser',
-                    oldRoot: 'random-host.com'
+                    rootUrl: 'random-host.com'
                 }, sandbox);
 
             sandbox.stub(Tunnel.prototype, 'open');
@@ -178,7 +187,7 @@ describe('plugin', function () {
                 }),
                 gemini = mimicGeminiConfig({
                     browserId: 'ya_browser',
-                    oldRoot: 'http://random-host.com'
+                    rootUrl: 'http://random-host.com'
                 }, sandbox);
 
             sandbox.stub(Tunnel.prototype, 'open');
@@ -197,7 +206,7 @@ describe('plugin', function () {
                 }),
                 gemini = mimicGeminiConfig({
                     browserId: 'ya_browser',
-                    oldRoot: 'http://random-host.com'
+                    rootUrl: 'http://random-host.com'
                 }, sandbox);
 
             sandbox.stub(Tunnel.prototype, 'open');
@@ -206,6 +215,25 @@ describe('plugin', function () {
             plugin(gemini, opts);
             return gemini.emitAndWait('startRunner').then(function () {
                 assert.include(gemini.config.forBrowser('ya_browser').rootUrl, 'http://');
+            });
+        });
+
+        it('should save paths in replaced urls where tunnel opened', function () {
+            var opts = buildGeminiOpts({
+                    host: 'some_host',
+                    ports: { min: 1, max: 1 }
+                }),
+                gemini = mimicGeminiConfig({
+                    browserId: 'ya_browser',
+                    rootUrl: 'http://random-host.com/some/path'
+                }, sandbox);
+
+            sandbox.stub(Tunnel.prototype, 'open');
+            Tunnel.prototype.open.returns(q());
+
+            plugin(gemini, opts);
+            return gemini.emitAndWait('startRunner').then(function () {
+                assert.equal(gemini.config.forBrowser('ya_browser').rootUrl, 'http://some_host:1/some/path');
             });
         });
     });
@@ -231,7 +259,7 @@ function mimicGeminiConfig (opts, sandbox) {
         emitter = new Constructor();
 
     emitter.config.getBrowserIds.returns([opts.browserId]);
-    emitter.config.forBrowser.withArgs(opts.browserId).returns({ rootUrl: opts.oldRoot });
+    emitter.config.forBrowser.withArgs(opts.browserId).returns({ rootUrl: opts.rootUrl });
 
     return emitter;
 }
