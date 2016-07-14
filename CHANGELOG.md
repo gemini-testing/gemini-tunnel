@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.2.1 - 2016-07-14
+
+* Fix issue with dropped url path after host replacement
+
 # 1.2.0 - 2016-03-10
 
 * Added ability to pass Function as a localport
