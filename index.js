@@ -1,7 +1,7 @@
 'use strict';
 
-var _ = require('lodash'),
-    util = require('util'),
+var url = require('url'),
+    _ = require('lodash'),
     Tunnel = require('ssh-tun'),
     q = require('q');
 
@@ -49,9 +49,14 @@ function openTunnel(gemini, opts) {
                 tunnel = createdTunnel;
                 gemini.config.getBrowserIds().forEach(function (id) {
                     var protocol = opts.protocol || DEFAULT_PROTOCOL,
-                        proxyUrl = createdTunnel.proxyUrl;
+                        proxyUrl = createdTunnel.proxyUrl,
+                        rootUrl = url.parse(gemini.config.forBrowser(id).rootUrl);
 
-                    gemini.config.forBrowser(id).rootUrl = util.format('%s://%s', protocol, proxyUrl);
+                    gemini.config.forBrowser(id).rootUrl = url.format({
+                        protocol: protocol,
+                        host: proxyUrl,
+                        pathname: _.get(rootUrl, 'path', '')
+                    });
                 });
             });
     });
