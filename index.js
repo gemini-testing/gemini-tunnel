@@ -20,6 +20,10 @@ module.exports = function (gemini, opts) {
 
     validateOpts(opts);
 
+    opts = _.extend({}, opts, {
+        user: process.env.GEMINI_TUNNEL_USER || opts.user
+    });
+
     openTunnel(gemini, opts);
 };
 
@@ -49,12 +53,12 @@ function openTunnel(gemini, opts) {
                 tunnel = createdTunnel;
                 gemini.config.getBrowserIds().forEach(function (id) {
                     var protocol = opts.protocol || DEFAULT_PROTOCOL,
-                        proxyUrl = createdTunnel.proxyUrl,
+                        proxyHost = createdTunnel.proxyHost,
                         rootUrl = url.parse(gemini.config.forBrowser(id).rootUrl);
 
                     gemini.config.forBrowser(id).rootUrl = url.format({
                         protocol: protocol,
-                        host: proxyUrl,
+                        host: proxyHost,
                         pathname: _.get(rootUrl, 'path', '')
                     });
                 });

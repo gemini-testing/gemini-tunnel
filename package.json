@@ -39,7 +39,7 @@
     "inherit": "^2.2.2",
     "lodash": "^3.10.1",
     "q": "^1.4.1",
-    "ssh-tun": "^1.0.0"
+    "ssh-tun": "^1.1.0"
   },
   "devDependencies": {
     "chai": "^3.3.0",

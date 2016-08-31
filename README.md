@@ -15,6 +15,7 @@ Plugin for setting up ssh tunnel while running tests with Gemini.
 - __ports.min__ Min port number.
 - __ports.max__ Max port number.
 - __localport__ Available port on local machine.
+- __user__ (optional) User to connect to remote host
 - __enabled__ (optional) Determines is plugin enabled. If option set as `false`, plugin will do nothing, otherwise plugin will work.
 - __retries__ (optional) Number of attempts to establish tunnel. Defaults to 5 times.
 - __protocol__ (optional) Protocol which will be used in resulting root url. Defaults to `http`
@@ -26,6 +27,7 @@ system:
   plugins:
     gemini-tunnel:
       host: remote_host_address
+      user: user
       ports:
         min: 8000
         max: 8100
