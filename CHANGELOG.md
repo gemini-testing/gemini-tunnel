@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.3.0 - 2016-08-31
+
+* Add `tunnel.user` config option; it could be overriden by `GEMINI_TUNNEL_USER` environment variable
+
 # 1.2.1 - 2016-07-14
 
 * Fix issue with dropped url path after host replacement
