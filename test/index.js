@@ -11,6 +11,37 @@ describe('plugin', function () {
     var sandbox = sinon.sandbox.create(),
         gemini;
 
+    function buildGeminiOpts (opts) {
+        opts = opts || {};
+
+        return _.defaults(opts, {
+            host: 'host',
+            ports: 'ports',
+            localport: 'localport',
+            user: undefined
+        });
+    }
+
+    function mimicGeminiConfig (opts) {
+        opts = _.defaults(opts || {}, {
+            browserId: 'default_browser',
+            rootUrl: 'default-host.com'
+        });
+
+        var Constructor = inherit(qEmitter, {
+                config: {
+                    getBrowserIds: sandbox.stub(),
+                    forBrowser: sandbox.stub()
+                }
+            }),
+            emitter = new Constructor();
+
+        emitter.config.getBrowserIds.returns([opts.browserId]);
+        emitter.config.forBrowser.withArgs(opts.browserId).returns({ rootUrl: opts.rootUrl });
+
+        return emitter;
+    }
+
     beforeEach(function () {
         gemini = new events.EventEmitter();
     });
@@ -80,15 +111,31 @@ describe('plugin', function () {
             }, 'Missing required option: localport');
         });
 
+        describe('user option', function () {
+            afterEach(function () {
+                delete process.env.GEMINI_TUNNEL_USER;
+            });
+
+            it('should get user option value from env variable GEMINI_TUNNEL_USER', function () {
+                var opts = buildGeminiOpts({ user: 'user1' }),
+                    gemini = mimicGeminiConfig();
+
+                process.env.GEMINI_TUNNEL_USER = 'user2';
+                sandbox.stub(Tunnel, 'openWithRetries').returns(q.resolve(new Tunnel(opts)));
+
+                plugin(gemini, opts);
+                return gemini.emitAndWait('startRunner').then(function () {
+                    assert.calledWithMatch(Tunnel.openWithRetries, { user: 'user2' });
+                });
+            });
+        });
+
         describe('"localport" is a function', function () {
             var opts;
 
             beforeEach(function () {
                 opts = buildGeminiOpts({ localport: sandbox.stub() });
-                gemini = mimicGeminiConfig(_.extend(opts, {
-                    browserId: 'ya_browser',
-                    rootUrl: 'random-host.com'
-                }), sandbox);
+                gemini = mimicGeminiConfig();
                 sandbox.stub(Tunnel, 'openWithRetries').returns(q.resolve(new Tunnel(opts)));
             });
 
@@ -129,10 +176,7 @@ describe('plugin', function () {
 
         it('should try open tunnel with retries set in opts on startRunner event', function () {
             var opts = buildGeminiOpts({ retries: 5 }),
-                gemini = mimicGeminiConfig(_.extend(opts, {
-                    browserId: 'ya_browser',
-                    rootUrl: 'random-host.com'
-                }), sandbox);
+                gemini = mimicGeminiConfig();
 
             sandbox.stub(Tunnel, 'openWithRetries').returns(q.resolve(new Tunnel(opts)));
 
@@ -144,10 +188,7 @@ describe('plugin', function () {
 
         it('should try to close tunnel on endRunner', function () {
             var opts = buildGeminiOpts(),
-                gemini = mimicGeminiConfig(_.extend(opts, {
-                    browserId: 'ya_browser',
-                    rootUrl: 'random-host.com'
-                }), sandbox);
+                gemini = mimicGeminiConfig();
 
             sandbox.stub(Tunnel.prototype, 'open').returns(q());
             sandbox.spy(Tunnel.prototype, 'close');
@@ -165,10 +206,7 @@ describe('plugin', function () {
                     host: 'some_host',
                     ports: { min: 1, max: 1 }
                 }),
-                gemini = mimicGeminiConfig({
-                    browserId: 'ya_browser',
-                    rootUrl: 'random-host.com'
-                }, sandbox);
+                gemini = mimicGeminiConfig({ browserId: 'ya_browser' });
 
             sandbox.stub(Tunnel.prototype, 'open');
             Tunnel.prototype.open.returns(q());
@@ -185,10 +223,7 @@ describe('plugin', function () {
                     ports: { min: 1, max: 1 },
                     protocol: 'https'
                 }),
-                gemini = mimicGeminiConfig({
-                    browserId: 'ya_browser',
-                    rootUrl: 'http://random-host.com'
-                }, sandbox);
+                gemini = mimicGeminiConfig({ browserId: 'ya_browser' });
 
             sandbox.stub(Tunnel.prototype, 'open');
             Tunnel.prototype.open.returns(q());
@@ -207,7 +242,7 @@ describe('plugin', function () {
                 gemini = mimicGeminiConfig({
                     browserId: 'ya_browser',
                     rootUrl: 'http://random-host.com'
-                }, sandbox);
+                });
 
             sandbox.stub(Tunnel.prototype, 'open');
             Tunnel.prototype.open.returns(q());
@@ -226,7 +261,7 @@ describe('plugin', function () {
                 gemini = mimicGeminiConfig({
                     browserId: 'ya_browser',
                     rootUrl: 'http://random-host.com/some/path'
-                }, sandbox);
+                });
 
             sandbox.stub(Tunnel.prototype, 'open');
             Tunnel.prototype.open.returns(q());
@@ -239,27 +274,3 @@ describe('plugin', function () {
     });
 });
 
-function buildGeminiOpts (opts) {
-    opts = opts || {};
-
-    return _.defaults(opts, {
-        host: 'host',
-        ports: 'ports',
-        localport: 'localport'
-    });
-}
-
-function mimicGeminiConfig (opts, sandbox) {
-    var Constructor = inherit(qEmitter, {
-            config: {
-                getBrowserIds: sandbox.stub(),
-                forBrowser: sandbox.stub()
-            }
-        }),
-        emitter = new Constructor();
-
-    emitter.config.getBrowserIds.returns([opts.browserId]);
-    emitter.config.forBrowser.withArgs(opts.browserId).returns({ rootUrl: opts.rootUrl });
-
-    return emitter;
-}
