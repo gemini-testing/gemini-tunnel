@@ -25,7 +25,7 @@ describe('plugin', function () {
     function mimicGeminiConfig (opts) {
         opts = _.defaults(opts || {}, {
             browserId: 'default_browser',
-            rootUrl: 'default-host.com'
+            rootUrl: 'http://default-host.com/'
         });
 
         var Constructor = inherit(qEmitter, {
@@ -154,6 +154,48 @@ describe('plugin', function () {
                 plugin(gemini, opts);
                 return assert.isRejected(gemini.emitAndWait('startRunner'), 'Could not find free port');
             });
+        });
+
+        describe('hostDecorator', () => {
+            beforeEach(() => {
+                sandbox.stub(Tunnel.prototype, 'open').returns(q());
+            });
+
+            const run_ = (opts, gemini) => {
+                plugin(gemini, opts);
+                return gemini.emitAndWait('startRunner')
+            }
+
+            it('should use host value by default', () => {
+                const opts = buildGeminiOpts({
+                    host: 'some.new.host'
+                });
+                const gemini = mimicGeminiConfig({ browserId: 'bro' });
+
+                return run_(opts, gemini)
+                    .then(() => assert.include(gemini.config.forBrowser('bro').rootUrl, 'some.new.host'));
+            });
+
+            it('should decorate rootUrl', () => {
+                const opts = buildGeminiOpts({
+                    hostDecorator: () => 'some.new.host'
+                });
+                const gemini = mimicGeminiConfig({ browserId: 'bro' });
+
+                return run_(opts, gemini)
+                    .then(() => assert.include(gemini.config.forBrowser('bro').rootUrl, 'some.new.host'));
+            });
+
+            it('should pass original host to the callback', () => {
+                const hostDecorator = sandbox.stub().named('hostDecorator');
+                const opts = buildGeminiOpts({hostDecorator});
+                const gemini = mimicGeminiConfig({ browserId: 'bro' });
+                gemini.config.forBrowser.withArgs('bro').returns({rootUrl: 'http://base.host'});
+
+                return run_(opts, gemini)
+                    .then(() => assert.calledWith(hostDecorator, 'base.host'));
+            });
+
         });
     });
 

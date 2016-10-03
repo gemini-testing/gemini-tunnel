@@ -19,22 +19,32 @@ Plugin for setting up ssh tunnel while running tests with Gemini.
 - __enabled__ (optional) Determines is plugin enabled. If option set as `false`, plugin will do nothing, otherwise plugin will work.
 - __retries__ (optional) Number of attempts to establish tunnel. Defaults to 5 times.
 - __protocol__ (optional) Protocol which will be used in resulting root url. Defaults to `http`
+- __hostDecorator__ (optional) Function which can be used to decorate hostname before it will be written into rootUrl
 
-Set the configuration to your `.gemini.yml`
+Set the configuration to your `.gemini.js`
 
-```yml
-system:
-  plugins:
-    gemini-tunnel:
-      host: remote_host_address
-      user: user
-      ports:
-        min: 8000
+```js
+system: {
+  plugins: {
+    gemini-tunnel: {
+      host: 'remote_host_address',
+      user: 'user',
+      ports: {
+        min: 8000,
         max: 8100
-      localport: 8080
-      enabled: true
-      retries: 3
-      protocol: https
+      },
+      localport: 8080,
+      enabled: true,
+      retries: 3,
+      protocol: 'https',
+      hostDecorator: (baseHost) => { // hostname from the original rootUrl
+        return /^m\./.test(baseHost)
+          ? 'm.remote_host_address'
+          : 'remote_host_address'
+      }
+    }
+  }
+}
 ```
 
 If passed config is not an object, plugin will do nothing.

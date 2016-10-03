@@ -28,7 +28,7 @@
     "Ilia Isupov <ilia.isupov@gmail.com>"
   ],
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">= 4.0.0"
   },
   "scripts": {
     "test": "npm run lint && npm run unit-test",

@@ -19,6 +19,7 @@ module.exports = function (gemini, opts) {
     }
 
     validateOpts(opts);
+    setDefaults(opts);
 
     opts = _.extend({}, opts, {
         user: process.env.GEMINI_TUNNEL_USER || opts.user
@@ -32,6 +33,12 @@ function validateOpts(opts) {
         if (!_.has(opts, option)) {
             throw new Error('Missing required option: ' + option);
         }
+    });
+}
+
+function setDefaults(opts) {
+    return _.defaults(opts, {
+        hostDecorator: () => opts.host
     });
 }
 
@@ -53,12 +60,12 @@ function openTunnel(gemini, opts) {
                 tunnel = createdTunnel;
                 gemini.config.getBrowserIds().forEach(function (id) {
                     var protocol = opts.protocol || DEFAULT_PROTOCOL,
-                        proxyHost = createdTunnel.proxyHost,
-                        rootUrl = url.parse(gemini.config.forBrowser(id).rootUrl);
+                        rootUrl = url.parse(gemini.config.forBrowser(id).rootUrl),
+                        hostname = opts.hostDecorator(rootUrl.hostname);
 
                     gemini.config.forBrowser(id).rootUrl = url.format({
                         protocol: protocol,
-                        host: proxyHost,
+                        host: `${hostname}:${createdTunnel.port}`,
                         pathname: _.get(rootUrl, 'path', '')
                     });
                 });
