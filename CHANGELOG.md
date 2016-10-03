@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.4.0 - 2016-10-03
+
+* Added `hostDecorator` option. See [doc](https://github.com/gemini-testing/gemini-tunnel#configuration) for details.
+
 # 1.3.0 - 2016-08-31
 
 * Add `tunnel.user` config option; it could be overriden by `GEMINI_TUNNEL_USER` environment variable
