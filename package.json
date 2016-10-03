@@ -1,6 +1,6 @@
 {
   "name": "gemini-tunnel",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Plugin for setting up ssh tunnel while running tests with Gemini",
   "keywords": [
     "gemini",
